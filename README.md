@@ -41,5 +41,5 @@
                   RQueueManager.buildDefault("127.0.0.1:6379", "");
 
                   RQueueClient rQueueClient = RQueueManager.getRQueueClient("tqueue");
-                  rQueueClient
+                  Object o = rQueueClient.poll();
        
