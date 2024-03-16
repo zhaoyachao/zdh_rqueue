@@ -15,6 +15,7 @@
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <redisson.version>3.22.0</redisson.version>
         <hutool-all.version>4.4.5</hutool-all.version>
+        <commons-lang3.version>3.5</commons-lang3.version>
     </properties>
     <repositories>
         <repository>
@@ -36,16 +37,11 @@
     </repositories>
     <dependencies>
 
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.79</version>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.5</version>
+            <version>${commons-lang3.version}</version>
         </dependency>
 
         <dependency>

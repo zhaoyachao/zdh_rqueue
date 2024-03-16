@@ -36,20 +36,22 @@ public class RQueueManager {
         //更新client
         RQueueClient rQueueClient = new RQueueClient<String>(queueName, redissonClient, rQueueMode);
         rQueueClientMap.put(key, rQueueClient);
+        rQueueClient.register(queueName);
         return rQueueClient;
     }
 
-    public static boolean removeQueue(String name) {
-        return removeQueue(name, defaultRedissonClient);
+    public static boolean removeQueue(String queueName) {
+        return removeQueue(queueName, defaultRedissonClient);
     }
 
-    public static boolean removeQueue(String name, RedissonClient redissonClient) {
-        RQueueClient rQueueClient = rQueueClientMap.get(name);
+    public static boolean removeQueue(String queueName, RedissonClient redissonClient) {
+        RQueueClient rQueueClient = rQueueClientMap.get(queueName);
         try {
             rQueueClient.clear();
-            rQueueClientMap.remove(name);
+            rQueueClientMap.remove(queueName);
+            rQueueClient.unregister(queueName);
         } catch (Exception e) {
-            rQueueClientMap.put(name, rQueueClient);
+            rQueueClientMap.put(queueName, rQueueClient);
             return false;
         }
         return true;

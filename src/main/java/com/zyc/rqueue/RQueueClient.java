@@ -1,18 +1,21 @@
 package com.zyc.rqueue;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.json.JSONUtil;
 import org.redisson.api.RQueue;
 import org.redisson.api.RedissonClient;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Queue;
+
 
 /**
  * RQueue统一客户端
  * @param <T>
  */
-public class RQueueClient<T> implements Queue<T> {
+public class RQueueClient<T>  implements ZRQueue<T> {
 
+    private static String registerKey="rqueue_map";
     private String queueName;
     private RQueueMode rQueueMode;
     private RedissonClient redissonClient;
@@ -139,4 +142,31 @@ public class RQueueClient<T> implements Queue<T> {
     public T peek() {
         return rQueue.peek();
     }
+
+    @Override
+    public void register(String queueName) {
+        //时间
+        RQueueInfo rQueueInfo = new RQueueInfo();
+        rQueueInfo.setCreate_time(DateUtil.now());
+        String value = JSONUtil.toJsonStr(rQueueInfo);
+        redissonClient.getMap(registerKey).put(queueName, value);
+    }
+
+    @Override
+    public void unregister(String queueName) {
+        redissonClient.getMap(registerKey).remove(queueName);
+    }
+
+    public static class RQueueInfo{
+        private String create_time;
+
+        public String getCreate_time() {
+            return create_time;
+        }
+
+        public void setCreate_time(String create_time) {
+            this.create_time = create_time;
+        }
+    }
+
 }
