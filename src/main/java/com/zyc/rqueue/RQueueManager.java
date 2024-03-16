@@ -23,8 +23,8 @@ public class RQueueManager {
         return getRQueueClient(queueName, RQueueMode.BLOCKQUEUE, defaultRedissonClient);
     }
 
-    public static RQueueClient getRQueueClient(String queueName, RedissonClient redissonClient) throws Exception {
-        return getRQueueClient(queueName, RQueueMode.BLOCKQUEUE, redissonClient);
+    public static RQueueClient getRQueueClient(String queueName, RQueueMode rQueueMode) throws Exception {
+        return getRQueueClient(queueName, rQueueMode, defaultRedissonClient);
     }
 
     public static RQueueClient getRQueueClient(String queueName, RQueueMode rQueueMode, RedissonClient redissonClient) throws Exception {
@@ -33,8 +33,13 @@ public class RQueueManager {
         if (rQueueClientMap.containsKey(key)) {
             return rQueueClientMap.get(key);
         }
-        //更新client
-        RQueueClient rQueueClient = new RQueueClient<String>(queueName, redissonClient, rQueueMode);
+        RQueueClient rQueueClient = null;
+        if(RQueueMode.PRIORITYQUEUE == rQueueMode){
+            rQueueClient = new RQueueClient<String>(queueName, redissonClient, rQueueMode);
+        }else{
+            rQueueClient = new RQueueClient<String>(queueName, redissonClient, rQueueMode);
+        }
+
         rQueueClientMap.put(key, rQueueClient);
         rQueueClient.register(queueName);
         return rQueueClient;
@@ -109,6 +114,14 @@ public class RQueueManager {
                 RedissonClient redissonClient = buildRedissonClient(host, passwd);
                 defaultRedissonClient = redissonClient;
             }
+            return defaultRedissonClient;
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    public static RedissonClient getDefaultRedissonClient() {
+        try {
             return defaultRedissonClient;
         } catch (Exception e) {
             throw e;

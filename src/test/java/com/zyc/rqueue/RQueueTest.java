@@ -1,8 +1,6 @@
 package com.zyc.rqueue;
 
-import cn.hutool.core.date.DateUtil;
-
-import java.util.Date;
+import cn.hutool.core.util.RandomUtil;
 
 public class RQueueTest {
 
@@ -10,6 +8,7 @@ public class RQueueTest {
         RQueueManager.buildDefault("127.0.0.1:6379", "");
 
         RQueueClient rQueueClient = RQueueManager.getRQueueClient("tqueue");
+        RQueueClient rQueueClientPriority = RQueueManager.getRQueueClient("tqueue2", RQueueMode.PRIORITYQUEUE);
 
         new Thread(new Runnable() {
             @Override
@@ -17,11 +16,11 @@ public class RQueueTest {
 
                 while (true){
                     try{
-                        Object o = rQueueClient.poll();
+                        Object o = rQueueClientPriority.poll();
                         if(o != null){
                             System.out.println("queue poll: "+o.toString());
                         }
-                        Thread.sleep(0);
+                        Thread.sleep(1000*5);
                     }catch (Exception e){
 
                     }
@@ -31,9 +30,11 @@ public class RQueueTest {
         }).start();
 
         while (true){
-            Thread.sleep(1000*5);
-            rQueueClient.add(DateUtil.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+            Thread.sleep(1000*2);
+            //rQueueClient.add(DateUtil.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+            int random = RandomUtil.getRandom().nextInt();
+            System.out.println(random);
+            rQueueClientPriority.offer(random,random);
         }
-
     }
 }

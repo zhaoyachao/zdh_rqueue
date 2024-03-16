@@ -2,11 +2,14 @@ package com.zyc.rqueue;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONUtil;
+import org.redisson.api.RDelayedQueue;
+import org.redisson.api.RPriorityQueue;
 import org.redisson.api.RQueue;
 import org.redisson.api.RedissonClient;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -39,7 +42,8 @@ public class RQueueClient<T>  implements ZRQueue<T> {
         }else if(rQueueMode == RQueueMode.DELAYEDQUEUE){
             rQueue = redissonClient.getDelayedQueue(redissonClient.getBlockingQueue(queueName));
         }else if(rQueueMode == RQueueMode.PRIORITYQUEUE){
-            rQueue = redissonClient.getPriorityBlockingQueue(queueName);
+            rQueue = redissonClient.getPriorityQueue(queueName);
+            ((RPriorityQueue)rQueue).trySetComparator(new RQueuePriorityComparator());
         }
     }
 
@@ -70,7 +74,7 @@ public class RQueueClient<T>  implements ZRQueue<T> {
 
     @Override
     public <T1> T1[] toArray(T1[] a) {
-        return rQueue.toArray(a);
+        return ((RQueue<T>)rQueue).toArray(a);
     }
 
     @Override
@@ -123,24 +127,68 @@ public class RQueueClient<T>  implements ZRQueue<T> {
         return rQueue.offer(t);
     }
 
+    public boolean offer(T t, Long l, TimeUnit timeUnit) {
+        if(RQueueMode.DELAYEDQUEUE != rQueueMode){
+            return false;
+        }
+        ((RDelayedQueue)rQueue).offer(t, l, timeUnit);
+        return true;
+    }
+
+    public boolean offer(Object t, Integer priority) {
+        if(RQueueMode.PRIORITYQUEUE != rQueueMode){
+            return false;
+        }
+        RQueuePriorityInfo rQueuePriorityInfo = new RQueuePriorityInfo();
+        rQueuePriorityInfo.setT(t);
+        rQueuePriorityInfo.setPriority(priority);
+
+        return ((RPriorityQueue)rQueue).offer(JSONUtil.toJsonStr(rQueuePriorityInfo));
+    }
+
     @Override
     public T remove() {
-        return rQueue.remove();
+        return ((RQueue<T>)rQueue).remove();
     }
 
     @Override
     public T poll() {
-        return rQueue.poll();
+        if(RQueueMode.PRIORITYQUEUE == rQueueMode){
+            T ret =  rQueue.poll();
+            if(ret != null){
+                RQueuePriorityInfo rQueuePriorityInfo = JSONUtil.toBean(ret.toString(), RQueuePriorityInfo.class);
+                return (T)rQueuePriorityInfo.getT();
+            }
+        }else if(RQueueMode.DELAYEDQUEUE == rQueueMode){
+            return ((RDelayedQueue<T>)rQueue).poll();
+        }
+        return ((RQueue<T>)rQueue).poll();
     }
 
     @Override
     public T element() {
-        return rQueue.element();
+        if(RQueueMode.PRIORITYQUEUE == rQueueMode){
+            RQueuePriorityInfo<T> ret = ((RPriorityQueue<RQueuePriorityInfo>)rQueue).element();
+            if(ret != null){
+                return ret.getT();
+            }
+        }else if(RQueueMode.DELAYEDQUEUE == rQueueMode){
+            return ((RDelayedQueue<T>)rQueue).element();
+        }
+        return ((RQueue<T>)rQueue).element();
     }
 
     @Override
     public T peek() {
-        return rQueue.peek();
+        if(RQueueMode.PRIORITYQUEUE == rQueueMode){
+            RQueuePriorityInfo<T> ret = ((RPriorityQueue<RQueuePriorityInfo>)rQueue).peek();
+            if(ret != null){
+                return ret.getT();
+            }
+        }else if(RQueueMode.DELAYEDQUEUE == rQueueMode){
+            return ((RDelayedQueue<T>)rQueue).peek();
+        }
+        return ((RQueue<T>)rQueue).peek();
     }
 
     @Override
@@ -168,5 +216,4 @@ public class RQueueClient<T>  implements ZRQueue<T> {
             this.create_time = create_time;
         }
     }
-
 }
