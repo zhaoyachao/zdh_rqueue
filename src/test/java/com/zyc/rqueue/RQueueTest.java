@@ -7,7 +7,7 @@ import java.util.Date;
 public class RQueueTest {
 
     public static void main(String[] args) throws Exception {
-        RQueueManager.buildDefault("127.0.0.1:6379", "zyczzu");
+        RQueueManager.buildDefault("127.0.0.1:6379", "");
 
         RQueueClient rQueueClient = RQueueManager.getRQueueClient("tqueue");
 
