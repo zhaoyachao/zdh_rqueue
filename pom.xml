@@ -77,7 +77,6 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.zyc.rqueue.ZdhQueue</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
