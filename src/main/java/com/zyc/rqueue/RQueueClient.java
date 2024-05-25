@@ -64,6 +64,22 @@ public class RQueueClient<T>  implements ZRQueue<T> {
         return rQueue.contains(o);
     }
 
+    /**
+     * 仅适用于-优先级队列检查
+     * @param o
+     * @param priority
+     * @return
+     */
+    public boolean contains(Object o, Integer priority) {
+        if(RQueueMode.PRIORITYQUEUE != rQueueMode){
+            return false;
+        }
+        RQueuePriorityInfo rQueuePriorityInfo = new RQueuePriorityInfo();
+        rQueuePriorityInfo.setT(o);
+        rQueuePriorityInfo.setPriority(priority);
+        return rQueue.contains(JSONUtil.toJsonStr(rQueuePriorityInfo));
+    }
+
     @Override
     public Iterator<T> iterator() {
         return rQueue.iterator();
@@ -87,6 +103,22 @@ public class RQueueClient<T>  implements ZRQueue<T> {
     @Override
     public boolean remove(Object o) {
         return rQueue.remove(o);
+    }
+
+    /**
+     * 仅适用优先级队列删除
+     * @param o
+     * @param priority
+     * @return
+     */
+    public boolean remove(Object o, Integer priority) {
+        if(RQueueMode.PRIORITYQUEUE != rQueueMode){
+            return false;
+        }
+        RQueuePriorityInfo rQueuePriorityInfo = new RQueuePriorityInfo();
+        rQueuePriorityInfo.setT(o);
+        rQueuePriorityInfo.setPriority(priority);
+        return rQueue.remove(JSONUtil.toJsonStr(rQueuePriorityInfo));
     }
 
     @Override
